@@ -1,0 +1,10 @@
+{
+  "request": {
+    "engine": "rain",
+    "play_style": "balance",
+    "required": [{"name": "Kyogre"}],
+    "excluded": ["Groudon"],
+    "preferences": {"complexity": "low", "resilience": "moderate", "novelty": "moderate"},
+    "novelty_budget": 1
+  }
+}

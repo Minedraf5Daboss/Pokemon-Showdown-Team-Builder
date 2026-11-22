@@ -1,0 +1,329 @@
+{
+  "sun": {
+    "aliases": ["sun", "sunny day", "sunshine"],
+    "requirements": [["sun_setter", 1], ["sun_payoff", 1]],
+    "excels_at": "Boosting Fire attacks and enabling sun-dependent abilities.",
+    "watch_out_for": "Opposing weather, Fire resists, and losing the weather setter.",
+    "kind": "engine",
+    "sources": ["https://www.smogon.com/forums/threads/doubles-ubers.3712864/", "https://www.smogon.com/forums/threads/vgc-regulation-f-2-0-sample-teams.3777032/"],
+    "benefits": [["sun_setter", "sun_payoff", "Sets sun, which benefits this teammate's moves or ability."]]
+  },
+  "rain": {
+    "aliases": ["rain", "rain dance", "rainy"],
+    "requirements": [["rain_setter", 1], ["rain_payoff", 1]],
+    "excels_at": "Boosting Water attacks and enabling rain-dependent speed or accuracy.",
+    "watch_out_for": "Sun resets, Water immunities, and opposing speed control.",
+    "kind": "engine",
+    "sources": ["https://www.smogon.com/forums/threads/doubles-ubers.3712864/", "https://www.smogon.com/forums/threads/vgc-regulation-f-2-0-sample-teams.3777032/"],
+    "benefits": [["rain_setter", "rain_payoff", "Sets rain, which benefits this teammate's moves or ability."]]
+  },
+  "sand": {
+    "aliases": ["sand", "sandstorm"],
+    "requirements": [["sand_setter", 1], ["sand_payoff", 1]],
+    "excels_at": "Enabling Sand Rush or Sand Force and applying weather chip.",
+    "watch_out_for": "Weather resets and chip damage to partners without immunity.",
+    "kind": "engine",
+    "sources": ["https://www.smogon.com/forums/threads/doubles-ubers.3712864/"],
+    "benefits": [["sand_setter", "sand_payoff", "Sets sand, which activates this teammate's ability."]]
+  },
+  "snow": {
+    "aliases": ["snow", "hail"],
+    "requirements": [["snow_setter", 1], ["snow_payoff", 1]],
+    "excels_at": "Supporting Ice attackers, accurate Blizzard, and Aurora Veil.",
+    "watch_out_for": "Weather resets and concentrated pressure on the weather setter.",
+    "kind": "engine",
+    "sources": ["https://www.smogon.com/forums/threads/vgc-regulation-f-2-0-sample-teams.3777032/"],
+    "benefits": [["snow_setter", "snow_payoff", "Sets snow, which benefits this teammate's moves or ability."]]
+  },
+  "trick_room": {
+    "aliases": ["trick room", "tr", "trickroom", "room offense"],
+    "requirements": [["trick_room", 1], ["slow_attacker", 1]],
+    "excels_at": "Letting slow attackers move ahead of faster opposing teams.",
+    "watch_out_for": "Taunt, Imprison, opposing slow attackers, and exhausted room turns.",
+    "kind": "engine",
+    "sources": ["https://www.vgcguide.com/speed-control"],
+    "benefits": [["trick_room", "slow_attacker", "Sets Trick Room so this slow teammate can move ahead of faster opponents."]]
+  },
+  "hard_trick_room": {
+    "aliases": ["hard trick room", "full trick room", "hard tr", "full tr"],
+    "requirements": [["trick_room", 2], ["slow_attacker", 3]],
+    "excels_at": "Repeatedly establishing Trick Room for several slow attackers.",
+    "watch_out_for": "Denied setup and limited attacking options outside Trick Room.",
+    "kind": "engine",
+    "sources": ["https://www.vgcguide.com/speed-control", "https://www.smogon.com/forums/threads/vgc-regulation-f-2-0-sample-teams.3777032/"],
+    "benefits": [["trick_room", "slow_attacker", "Sets Trick Room so this slow teammate can move ahead of faster opponents."]]
+  },
+  "semiroom": {
+    "aliases": ["semiroom", "semi room", "semi trick room", "soft trick room", "soft tr"],
+    "requirements": [["trick_room", 1], ["slow_attacker", 1], ["fast_attacker", 1]],
+    "excels_at": "Choosing between a slow mode and a faster attacking mode.",
+    "watch_out_for": "Setting Trick Room at the wrong time for the partners on the field.",
+    "kind": "engine",
+    "sources": ["https://www.vgcguide.com/speed-control"],
+    "benefits": [["trick_room", "slow_attacker", "Sets Trick Room so this slow teammate can move ahead of faster opponents."]]
+  },
+  "tailwind": {
+    "aliases": ["tailwind", "tail wind"],
+    "requirements": [["tailwind", 1], ["attacker", 2]],
+    "excels_at": "Giving attacking partners a temporary speed advantage.",
+    "watch_out_for": "Trick Room, speed drops, and opponents matching Tailwind.",
+    "kind": "engine",
+    "sources": ["https://www.vgcguide.com/speed-control"],
+    "benefits": [["tailwind", "attacker", "Uses Tailwind to give this attacker a temporary Speed boost."]]
+  },
+  "hyper_offense": {
+    "aliases": ["hyper offense", "hyper offence", "ho", "all out offense", "glass cannon"],
+    "requirements": [["attacker", 4], ["fast_attacker", 3]],
+    "excels_at": "Applying immediate damage pressure with several fast attackers.",
+    "watch_out_for": "Limited defensive switching and losing control of move order.",
+    "kind": "play_style",
+    "sources": ["https://www.smogon.com/forums/threads/vgc-regulation-f-2-0-sample-teams.3777032/"]
+  },
+  "bulky_offense": {
+    "aliases": ["bulky offense", "bulky offence", "bo"],
+    "requirements": [["bulky_attacker", 2], ["support", 1]],
+    "excels_at": "Trading hits while maintaining attacking pressure.",
+    "watch_out_for": "Repeated chip and opponents setting up against passive turns.",
+    "kind": "play_style",
+    "sources": ["https://www.vgcguide.com/synergy", "https://www.smogon.com/forums/threads/doubles-ubers.3712864/"]
+  },
+  "balance": {
+    "aliases": ["balance", "balanced", "goodstuff", "goodstuffs", "balanced team"],
+    "requirements": [["attacker", 2], ["support", 2], ["speed_control", 1]],
+    "excels_at": "Combining attackers, supporting partners, and speed control.",
+    "watch_out_for": "Specialized engines that overwhelm the available defensive answers."
+  },
+  "defensive": {
+    "aliases": ["defensive", "defense", "defence", "fat", "bulky team"],
+    "requirements": [["defensive", 3], ["sustain", 1]],
+    "excels_at": "Reducing damage and preserving partners through longer exchanges.",
+    "watch_out_for": "Taunt, strong setup attackers, and overwhelming double targets."
+  },
+  "stall": {
+    "aliases": ["stall", "stally"],
+    "requirements": [["defensive", 4], ["sustain", 2], ["residual", 1]],
+    "excels_at": "Winning prolonged exchanges through recovery and residual damage.",
+    "watch_out_for": "Doubles damage output, Taunt, and opponents that ignore passive damage.",
+    "kind": "play_style",
+    "sources": ["https://www.smogon.com/articles/getting-started"]
+  },
+  "setup": {
+    "aliases": ["setup", "set up", "boosting", "setup sweepers"],
+    "requirements": [["setup", 1], ["support", 1]],
+    "excels_at": "Creating protected turns for a boosted attacker to become a win condition.",
+    "watch_out_for": "Haze, Clear Smog, Encore, and being attacked before boosting.",
+    "kind": "engine",
+    "sources": ["https://www.vgcguide.com/synergy"],
+    "benefits": [["support", "setup", "Provides support that can create a turn for this teammate to set up."]]
+  },
+  "screens": {
+    "aliases": ["screens", "dual screens"],
+    "requirements": [["screens", 1]],
+    "excels_at": "Reducing incoming damage to create setup or positioning turns.",
+    "watch_out_for": "Brick Break, Psychic Fangs, critical hits, and screen expiration.",
+    "kind": "engine",
+    "sources": ["https://www.smogon.com/forums/threads/doubles-ubers.3712864/"]
+  },
+  "perish_trap": {
+    "aliases": ["perish trap", "perish trapping", "perish song", "perishtrap"],
+    "requirements": [["perish_song", 1], ["trapping", 1]],
+    "excels_at": "Threatening a countdown knockout while restricting switching.",
+    "watch_out_for": "Ghost-type escape, pivot moves, and losing the trapper too early.",
+    "kind": "engine",
+    "sources": ["https://www.smogon.com/forums/threads/vgc-25-regulation-g-sample-teams-thread.3747193/", "https://www.reddit.com/r/VGC/comments/1d4hxhg"],
+    "benefits": [["trapping", "perish_song", "Can restrict opposing switches during this teammate's Perish Song countdown."]]
+  },
+  "commander": {
+    "aliases": ["commander", "dondozo tatsugiri", "dozo", "dondozo and tatsugiri", "dozogiri"],
+    "requirements": [["commander", 1], ["dondozo", 1]],
+    "excels_at": "Concentrating Commander boosts into Dondozo.",
+    "watch_out_for": "Haze, Clear Smog, Unaware, and playing with one active attacker.",
+    "kind": "engine",
+    "sources": ["https://www.smogon.com/forums/threads/dondozo-commander-tatsugiri-team.3761801/"],
+    "benefits": [["commander", "dondozo", "Activates Commander alongside Dondozo to raise its stats."]]
+  },
+  "psyspam": {
+    "aliases": ["psyspam", "psychic spam", "psychic terrain", "expanding force spam"],
+    "requirements": [["psychic_terrain", 1], ["psychic_payoff", 1]],
+    "excels_at": "Enabling terrain-boosted Psychic attacks and grounded priority protection.",
+    "watch_out_for": "Dark types, terrain replacement, and Wide Guard against spread moves.",
+    "kind": "engine",
+    "sources": ["https://www.smogon.com/forums/threads/vgc-regulation-f-2-0-sample-teams.3777032/"],
+    "benefits": [["psychic_terrain", "psychic_payoff", "Sets Psychic Terrain to power up this teammate's grounded Psychic attacks."]]
+  },
+  "electric_terrain": {
+    "aliases": ["electric terrain", "electric spam"],
+    "requirements": [["electric_terrain", 1], ["electric_payoff", 1]],
+    "excels_at": "Supporting Electric damage and Quark Drive activation.",
+    "watch_out_for": "Ground types and terrain replacement; grounded sleep is also blocked.",
+    "kind": "engine",
+    "sources": ["https://www.smogon.com/forums/threads/gen-9-doubles-ubers-rain-electric-terrain-team.3726423/"],
+    "benefits": [["electric_terrain", "electric_payoff", "Sets Electric Terrain to support this teammate's Electric attacks or Quark Drive."]]
+  },
+  "gravity": {
+    "aliases": ["gravity"],
+    "requirements": [["gravity", 1], ["gravity_payoff", 1]],
+    "excels_at": "Improving move accuracy and removing Ground immunities from airborne targets.",
+    "watch_out_for": "Short field duration and exposing allied airborne Pokemon to Ground attacks.",
+    "kind": "engine",
+    "sources": ["https://www.smogon.com/forums/threads/tips-on-this-dubers-team.3767016/"],
+    "benefits": [["gravity", "gravity_payoff", "Uses Gravity to improve this teammate's accuracy or ground airborne targets."]]
+  },
+  "quirky": {
+    "aliases": ["quirky", "unusual mechanics", "unconventional", "gimmick", "gimmicky", "wolfey", "wolfeyvcg", "wolfeyvgc", "wolfe glick", "creative", "offbeat"],
+    "requirements": [["unusual_engine", 1]],
+    "excels_at": "Combining unusual partner interactions to create a distinct win condition.",
+    "watch_out_for": "The specific engine being disrupted; novelty alone is not competitive strength."
+  },
+  "tailroom": {
+    "aliases": ["tailroom", "tail room", "tailwind trick room", "tailwind and trick room", "tailwind + trick room", "tailwind with trick room", "trick room and tailwind"],
+    "requirements": [["tailwind", 1], ["trick_room", 1], ["slow_attacker", 1], ["fast_attacker", 1]],
+    "excels_at": "Switch between Tailwind for fast attackers and Trick Room for slow attackers.",
+    "watch_out_for": "Both modes need field turns. Tailwind can make your own attackers move later while Trick Room is active.",
+    "kind": "engine",
+    "sources": ["https://www.smogon.com/forums/threads/vgc-regulation-f-2-0-sample-teams.3777032/", "https://www.vgcguide.com/speed-control"],
+    "benefits": [["trick_room", "slow_attacker", "Sets Trick Room so this slow teammate can move ahead of faster opponents."], ["tailwind", "fast_attacker", "Uses Tailwind to give this attacker a temporary Speed boost."]]
+  },
+  "sunroom": {
+    "aliases": ["sunroom", "sun room", "sun trick room", "sun and trick room", "trick room sun", "sun + trick room"],
+    "requirements": [["sun_setter", 1], ["trick_room", 1], ["slow_sun_attacker", 1]],
+    "excels_at": "Set sun and Trick Room so a slow attacker can use sun-boosted damage.",
+    "watch_out_for": "Opposing weather, denied Trick Room, and losing tempo while setting up both conditions.",
+    "kind": "engine",
+    "sources": ["https://www.smogon.com/forums/threads/doubles-ubers.3712864/", "https://www.vgcguide.com/speed-control", "https://www.smogon.com/forums/threads/vgc-regulation-f-2-0-sample-teams.3777032/"],
+    "benefits": [["sun_setter", "slow_sun_attacker", "Sets sun, which benefits this teammate's moves or ability."], ["trick_room", "slow_sun_attacker", "Sets Trick Room so this slow teammate can move ahead of faster opponents."]]
+  },
+  "rainroom": {
+    "aliases": ["rainroom", "rain room", "rain trick room", "rain and trick room", "trick room rain", "rain + trick room"],
+    "requirements": [["rain_setter", 1], ["trick_room", 1], ["slow_rain_attacker", 1]],
+    "excels_at": "Use Trick Room to give slow rain-powered attackers favorable move order.",
+    "watch_out_for": "Sun can remove the damage boost. Swift Swim can work against a slow mode while rain is active.",
+    "kind": "engine",
+    "sources": ["https://www.smogon.com/forums/threads/doubles-ubers.3712864/page-3", "https://victoryroad.pro/2025/07/25/jayden-gan-singapore/"],
+    "benefits": [["rain_setter", "slow_rain_attacker", "Sets rain, which benefits this teammate's moves or ability."], ["trick_room", "slow_rain_attacker", "Sets Trick Room so this slow teammate can move ahead of faster opponents."]]
+  },
+  "pivot_control": {
+    "aliases": ["pivot control", "pivot balance", "pivot spam", "pivot offense", "voltturn", "volt turn", "intimidate cycling", "fake out cycling"],
+    "requirements": [["pivot", 2], ["damage_control", 2], ["attacker", 2]],
+    "excels_at": "Cycle switching moves and damage control to bring attackers into favorable positions.",
+    "watch_out_for": "Trapping, strong spread damage, Defiant or Competitive, and repeated chip on pivots.",
+    "kind": "engine",
+    "sources": ["https://www.vgcguide.com/synergy", "https://www.smogon.com/forums/threads/doubles-ubers.3712864/"]
+  },
+  "redirection_setup": {
+    "aliases": ["redirection setup", "redirect and set up", "redirect setup", "setup with redirection"],
+    "requirements": [["redirection", 1], ["protected_setup", 1]],
+    "excels_at": "Use Follow Me or Rage Powder to buy a setup turn for an offensive partner.",
+    "watch_out_for": "Spread moves bypass redirection. Grass types, Overcoat, and Safety Goggles can ignore Rage Powder.",
+    "kind": "engine",
+    "sources": ["https://www.vgcguide.com/synergy", "https://www.smogon.com/forums/threads/doubles-ubers.3712864/"],
+    "benefits": [["redirection", "protected_setup", "Can draw eligible single-target attacks away while this teammate sets up."]]
+  },
+  "priority_offense": {
+    "aliases": ["priority offense", "priority offence", "priority spam", "priority attackers"],
+    "requirements": [["priority_attacker", 2], ["attacker", 3]],
+    "excels_at": "Pressure weakened opponents with multiple damaging priority users and back them up with direct offense.",
+    "watch_out_for": "Psychic Terrain and priority-blocking abilities can stop attacks. Some priority moves require the target to attack.",
+    "kind": "engine",
+    "sources": ["https://www.smogon.com/forums/threads/doubles-ubers.3712864/"]
+  },
+  "physical_ruin": {
+    "aliases": ["physical ruin", "sword of ruin"],
+    "requirements": [["sword_of_ruin", 1], ["physical_ruin_payoff", 1]],
+    "excels_at": "Use Sword of Ruin to amplify an allied physical attack, including priority or Body Press.",
+    "watch_out_for": "Sword of Ruin also lowers allied Defense. Psychic Terrain and priority blockers can blunt priority variants.",
+    "kind": "engine",
+    "sources": ["https://www.smogon.com/forums/threads/doubles-ubers.3712864/", "https://www.smogon.com/dex/sv/pokemon/chien-pao/vgc25-regulation-i/"],
+    "benefits": [["sword_of_ruin", "physical_ruin_payoff", "Lowers other Pokemon's Defense with Sword of Ruin, increasing this ally's physical damage."]]
+  },
+  "special_ruin": {
+    "aliases": ["special ruin", "beads of ruin", "beads spread offense"],
+    "requirements": [["beads_of_ruin", 1], ["special_ruin_payoff", 1]],
+    "excels_at": "Use Beads of Ruin to amplify allied special spread damage.",
+    "watch_out_for": "Beads of Ruin also lowers allied Special Defense, and Wide Guard can stop spread damage.",
+    "kind": "engine",
+    "sources": ["https://www.smogon.com/forums/threads/doubles-ubers.3712864/page-3"],
+    "benefits": [["beads_of_ruin", "special_ruin_payoff", "Lowers other Pokemon's Special Defense with Beads of Ruin, increasing this ally's special spread damage."]]
+  },
+  "grassy_terrain": {
+    "aliases": ["grassy terrain", "grassy terrain offense", "grass spam", "grassy spam"],
+    "requirements": [["grassy_terrain", 1], ["grassy_glide", 1], ["grassy_payoff", 2]],
+    "excels_at": "Use Grassy Terrain for grounded Grass damage, Grassy Glide priority, and passive recovery.",
+    "watch_out_for": "Terrain replacement, Grass resists, and reduced damage from Earthquake against grounded targets.",
+    "kind": "engine",
+    "sources": ["https://www.smogon.com/articles/ssdou-terrain"],
+    "benefits": [["grassy_terrain", "grassy_payoff", "Sets Grassy Terrain to power up eligible Grass attacks from this grounded teammate."]]
+  },
+  "coaching": {
+    "aliases": ["coaching", "coaching offense", "ally coaching"],
+    "requirements": [["coaching", 1], ["coaching_payoff", 1]],
+    "excels_at": "Use Coaching to raise an ally's Attack and Defense so it can deal damage and take physical hits.",
+    "watch_out_for": "Taunt, Haze, and strong special damage can disrupt the plan. Coaching needs the attacker alongside its user.",
+    "kind": "engine",
+    "sources": ["https://www.smogon.com/forums/threads/doubles-ubers.3712864/page-5", "https://www.smogon.com/forums/threads/vgc-teams-of-the-week-accepting-regulation-m-c.3727451/page-3"],
+    "benefits": [["coaching", "coaching_payoff", "Uses Coaching to raise this teammate's Attack and Defense."]]
+  },
+  "beat_up": {
+    "aliases": ["beat up", "beat up offense", "beat up combo"],
+    "requirements": [["beat_up", 1], ["beat_up_payoff", 1]],
+    "excels_at": "Target an ally with Beat Up to charge Rage Fist or trigger Justified repeatedly.",
+    "watch_out_for": "The opener can be stopped by Fake Out or disrupted by redirection. Fainted and statused team members reduce the number of hits.",
+    "kind": "engine",
+    "sources": ["https://www.smogon.com/forums/threads/ruinous-rage-a-regulation-c-annihilape-maushold-offense.3720783/"],
+    "benefits": [["beat_up", "beat_up_payoff", "Can target this teammate with Beat Up to charge Rage Fist or activate Justified."]]
+  },
+  "commander_costar": {
+    "aliases": ["commander costar", "commander with costar", "dondozo costar", "dozo costar", "costar dondozo", "costar flamigo", "dozo flamigo", "dondozo flamigo"],
+    "requirements": [["commander", 1], ["dondozo", 1], ["costar", 1], ["perish_song", 1]],
+    "excels_at": "Put a Perish Song countdown on Tatsugiri before Commander so Flamigo can enter and copy Dondozo's boosts after Tatsugiri faints.",
+    "watch_out_for": "The handoff takes multiple turns. Dondozo must stay in and retain its boosts for Costar to copy.",
+    "kind": "engine",
+    "sources": ["https://www.smogon.com/forums/threads/regulation-h-double-don.3753368/"],
+    "benefits": [["commander", "dondozo", "Activates Commander alongside Dondozo to raise its stats."], ["dondozo", "costar", "Can pass its current stat stages to this Costar teammate once it can enter beside Dondozo."]]
+  },
+  "dancer": {
+    "aliases": ["dancer", "dancer offense", "dance spam", "oricorio dance"],
+    "requirements": [["dancer", 1], ["ally_dance", 1]],
+    "excels_at": "Pair Dancer with an ally that uses dance moves so Oricorio can copy them.",
+    "watch_out_for": "Disruption before the dance and concentrated damage on Oricorio make the pair hard to sustain.",
+    "kind": "engine",
+    "sources": ["https://www.smogon.com/forums/threads/oricorio-vgc-2023-series-1.3713930/"],
+    "benefits": [["ally_dance", "dancer", "Uses a dance move this teammate can copy through Dancer."]]
+  },
+  "gravity_sleep": {
+    "aliases": ["gravity sleep", "sleep under gravity", "gravity sleep offense"],
+    "requirements": [["gravity", 1], ["gravity_sleep_payoff", 1]],
+    "excels_at": "Use Gravity to improve the accuracy of sleep moves such as Hypnosis.",
+    "watch_out_for": "Gravity expires quickly and grounds both sides. Electric or Misty Terrain can protect grounded targets from sleep.",
+    "kind": "engine",
+    "sources": ["https://www.smogon.com/forums/threads/tips-on-this-dubers-team.3767016/"],
+    "benefits": [["gravity", "gravity_sleep_payoff", "Uses Gravity to improve the accuracy of this teammate's sleep move."]]
+  },
+  "pao_nite": {
+    "aliases": ["pao nite", "paonite", "chien pao dragonite", "chien pao and dragonite", "chien pao dnite", "pao dnite"],
+    "requirements": [["sword_of_ruin", 1], ["extreme_speed_dragonite", 1]],
+    "excels_at": "Use Chien-Pao's Sword of Ruin alongside Dragonite's Extreme Speed for immediate priority damage.",
+    "watch_out_for": "Ghost types are immune to Extreme Speed. Priority blockers and Psychic Terrain can stop it against protected targets.",
+    "kind": "engine",
+    "sources": ["https://www.smogon.com/forums/threads/doubles-ubers.3712864/"],
+    "benefits": [["sword_of_ruin", "extreme_speed_dragonite", "Lowers other Pokemon's Defense with Sword of Ruin, increasing Dragonite's Extreme Speed damage."]]
+  },
+  "blizzard_spam": {
+    "aliases": ["blizzard spam", "double blizzard", "snow blizzard offense"],
+    "requirements": [["snow_setter", 1], ["blizzard", 2]],
+    "excels_at": "Set snow and pressure both opposing slots with multiple Blizzard users.",
+    "watch_out_for": "Wide Guard blocks Blizzard, and weather replacement removes its snow accuracy benefit.",
+    "kind": "engine",
+    "sources": ["https://www.smogon.com/forums/threads/12-months-of-sv-dlc-2-a-look-back-the-us-west-team-dump.3757399/", "https://www.smogon.com/forums/threads/vgc-regulation-f-2-0-sample-teams.3777032/"],
+    "benefits": [["snow_setter", "blizzard", "Sets snow so this teammate's Blizzard bypasses the normal accuracy check."]]
+  },
+  "aurora_veil": {
+    "aliases": ["aurora veil", "veil", "snow veil", "veil offense"],
+    "requirements": [["snow_setter", 1], ["aurora_veil", 1], ["setup", 1]],
+    "excels_at": "Set snow and use Aurora Veil to help a teammate withstand hits while setting up.",
+    "watch_out_for": "Weather replacement can prevent Veil from going up. Critical hits can bypass its protection.",
+    "kind": "engine",
+    "sources": ["https://www.smogon.com/forums/threads/vgc-regulation-f-2-0-sample-teams.3777032/"],
+    "benefits": [["snow_setter", "aurora_veil", "Sets the snow required to use this teammate's Aurora Veil."], ["aurora_veil", "setup", "Uses Aurora Veil in snow to reduce incoming damage while this teammate sets up."]]
+  }
+}
