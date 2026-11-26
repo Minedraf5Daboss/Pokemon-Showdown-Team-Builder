@@ -14,5 +14,5 @@ snapshot.species = Object.fromEntries(Dex.species.all().filter(entry => entry.ge
   baseSpecies: entry.baseSpecies, baseStats: entry.baseStats, types: entry.types,
 }]));
 snapshot.move_categories = Object.fromEntries(Dex.moves.all().map(entry => [entry.id, entry.category]));
-fs.writeFileSync('data/smogon/battle_dex.json', JSON.stringify(snapshot, null, 2) + '\n');
+fs.writeFileSync(process.argv[2] || 'data/smogon/battle_dex.json', JSON.stringify(snapshot, null, 2) + '\n');
 console.log(`Exported official Showdown ${snapshot.version} names and species metadata.`);

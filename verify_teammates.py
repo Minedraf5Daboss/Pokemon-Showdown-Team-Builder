@@ -10,6 +10,8 @@ import math
 from pathlib import Path
 import re
 
+from catalog_paths import active_catalog_dir
+
 
 def require(condition, message):
     if not condition:
@@ -28,32 +30,49 @@ def usage_rows(text):
     return rows
 
 
-def audit(root, names=None):
-    manifests = json.loads((root / "download_manifest.json").read_text())
-    require([item["month"] for item in manifests] ==
-            ["2026-08", "2026-09", "2026-10"], "Unexpected months")
+def audit(root, names=None, *, expected_months=None):
+    manifests = json.loads((root / "download_manifest.json").read_text(encoding="utf-8"))
     if names is None:
-        recommendations = json.loads((root / "set_recommendations.json").read_text())
+        recommendations = json.loads((root / "set_recommendations.json").read_text(encoding="utf-8"))
+        if expected_months is None:
+            expected_months = recommendations["months"]
         names = list(recommendations["species"])
+    manifest_months = [item["month"] for item in manifests]
+    require(manifest_months and manifest_months == sorted(set(manifest_months)),
+            "Cutoff-0 source months must be unique and chronological")
+    if expected_months is not None:
+        require(manifest_months == list(expected_months), "Cutoff-0 sources do not match the recommendation months")
     months = []
     text_checks = 0
     for manifest in manifests:
         month = manifest["month"]
         folder = root / month
+        checked = set()
         for source in manifest["sources"]:
-            filename = source["url"].rsplit("/", 1)[1]
-            if "/moveset/" in source["url"]:
-                filename = "moveset-" + filename
+            filename = source.get("path")
+            if filename is None:
+                filename = source["url"].rsplit("/", 1)[1]
+                if "/moveset/" in source["url"]:
+                    filename = "moveset-" + filename
+            else:
+                filename = Path(filename).name
+            require(filename in {"gen9doublesubers-0.json", "gen9doublesubers-0.txt",
+                                 "moveset-gen9doublesubers-0.txt"} and filename not in checked,
+                    f"Unexpected cutoff-0 source: {month}/{filename}")
             content = (folder / filename).read_bytes()
             require(hashlib.sha256(content).hexdigest() == source["sha256"],
                     f"Source checksum mismatch: {month}/{filename}")
+            checked.add(filename)
+        require(len(checked) == 3, f"Incomplete cutoff-0 sources: {month}")
         document = json.loads((folder / "gen9doublesubers-0.json").read_text())
         info = document["info"]
         require(info["metagame"] == "gen9doublesubers" and info["cutoff"] == 0
                 and info["team type"] is None, f"Wrong ladder/cutoff: {month}")
         table = (folder / "gen9doublesubers-0.txt").read_text()
-        battles = int(re.search(r"Total battles: (\d+)", table)[1])
-        require(battles == info["number of battles"], "Battle totals disagree")
+        total = re.search(r"Total battles: (\d+)", table)
+        require(total and int(total[1]) > 0 and int(total[1]) == info["number of battles"],
+                f"Missing or inconsistent battle totals: {month}")
+        battles = int(total[1])
         rows = usage_rows(table)
         data = document["data"]
         moveset = (folder / "moveset-gen9doublesubers-0.txt").read_text()
@@ -137,7 +156,7 @@ def audit(root, names=None):
 
 
 if __name__ == "__main__":
-    root = Path(__file__).parent / "data" / "smogon"
+    root = active_catalog_dir()
     report = audit(root)
     (root / "teammate_audit.json").write_text(json.dumps(report, indent=2) + "\n")
     counts = {status: sum(pair["status"] == status for row in report["pairs"].values()

@@ -4,6 +4,8 @@ from math import isfinite
 import json
 from pathlib import Path
 
+from catalog_paths import active_catalog_dir
+
 FORMAT_ID = "gen9doublesubers"
 ROLE_VOCABULARY = frozenset({
     "Support", "Speed Control", "Physical Sweeper", "Special Sweeper",
@@ -184,7 +186,7 @@ def parse_restricted_mons(restricted_mons: str, pool: list[Candidate]) -> set[st
 
 def load_pool(path: Path | None = None) -> list[Candidate]:
     """Load the frozen production catalog without a network or toy-data fallback."""
-    path = path or Path(__file__).parent / "data" / "smogon" / "candidate_pool.json"
+    path = path or active_catalog_dir() / "candidate_pool.json"
     document = json.loads(Path(path).read_text(encoding="utf-8"))
     if document.get("schema_version") != 2 or document.get("format") != FORMAT_ID:
         raise ValueError("Unsupported candidate catalog schema/format")

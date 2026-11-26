@@ -8,7 +8,7 @@ const crypto = require('node:crypto');
 const { TeamValidator } = require('./.tools/pokemon-showdown/package/dist/sim/team-validator');
 const { Teams } = require('./.tools/pokemon-showdown/package/dist/sim/teams');
 const { Dex } = require('./.tools/pokemon-showdown/package/dist/sim/dex');
-const root = path.join(__dirname, 'data', 'smogon');
+const root = process.argv[2] || path.join(__dirname, 'data', 'smogon');
 const input = fs.readFileSync(path.join(root, 'candidate_sets.json'));
 const document = JSON.parse(input);
 if (document.format !== 'gen9doublesubers') throw new Error('Wrong format');
@@ -20,11 +20,12 @@ const results = document.sets.map((set, index) => ({
   errors: validator.validateSet(clone(set), {}) || [],
 }));
 // Regression controls prove the validator is enforcing move legality and EV limits.
-const pursuit = clone(document.sets.find(set => set.species === 'Tyranitar'));
-pursuit.moves[3] = 'Pursuit';
+const pursuit = clone(document.sets.find(set => set.species === 'Tyranitar') || document.sets[0]);
+pursuit.moves[0] = 'Pursuit';
 const tooManyEvs = clone(document.sets[0]);
 tooManyEvs.evs.hp = 252;
 tooManyEvs.evs.def = 252;
+tooManyEvs.evs.spd = 252;
 const controls = {
   unavailable_pursuit: validator.validateSet(pursuit, {}) || [],
   excessive_evs: validator.validateSet(tooManyEvs, {}) || [],

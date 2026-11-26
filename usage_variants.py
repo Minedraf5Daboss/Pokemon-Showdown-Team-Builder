@@ -33,6 +33,7 @@ MOVE_ROLES = {
 }
 CHOICE_ITEMS = {"choicescarf", "choicespecs", "choiceband"}
 CHOICE_STATUS = {"trick", "switcheroo"}
+CROWNED_FORMS = {"Zacian-Crowned", "Zamazenta-Crowned"}
 STATS = ("hp", "atk", "def", "spa", "spd", "spe")
 SECTIONS = ("Abilities", "Items", "Moves", "Spreads", "Tera Types")
 
@@ -50,6 +51,17 @@ def parse_spread(key):
     nature, values = key.split(":")
     evs = dict(zip(STATS, map(int, values.split("/")), strict=True))
     return nature, evs
+
+
+def validate_options(groups, *, all_legal=False, allow_normalization=False):
+    command = ["node", str(Path(__file__).with_name("validate_set_options.cjs"))]
+    if all_legal:
+        command.append("--all")
+    if allow_normalization:
+        command.append("--allow-normalization")
+    completed = subprocess.run(command, input=json.dumps(groups, separators=(",", ":")),
+                               encoding="utf-8", stdout=subprocess.PIPE, check=True)
+    return json.loads(completed.stdout)
 
 
 def ranked(counts, legal_names, minimum=0):
@@ -192,12 +204,18 @@ def generate_variants(species, dex, reports, months, urls, infer_ivs, to_id, rol
                 by_role[slug].extend({**option, "cutoff": cutoff} for option in options)
         groups.update({(name, slug): options for slug, options in by_role.items()})
     # Node is only needed to regenerate the catalog. Runtime uses frozen JSON.
-    validation = subprocess.run(
-        ["node", str(Path(__file__).with_name("validate_set_options.cjs"))],
-        input=json.dumps(list(groups.values()), separators=(",", ":")), encoding="utf-8",
-        stdout=subprocess.PIPE, check=True,
-    )
-    for ((name, _), choices), index in zip(groups.items(), json.loads(validation.stdout), strict=True):
+    entries = list(groups.items())
+    validation = validate_options(list(groups.values()))
+    legal_species = {name for ((name, _), _), index in zip(entries, validation, strict=True) if index >= 0}
+    # Showdown stores crowned forms under their base names with the Rusted
+    # items. Permit that normalization if a crowned form needs a new baseline.
+    fallback = [i for i, ((name, _), choices) in enumerate(entries)
+                if name in CROWNED_FORMS and name not in legal_species and not species[name]["sets"] and choices]
+    if fallback:
+        normalized = validate_options([entries[i][1] for i in fallback], allow_normalization=True)
+        for i, index in zip(fallback, normalized, strict=True):
+            validation[i] = index
+    for ((name, _), choices), index in zip(entries, validation, strict=True):
         if index < 0:
             continue
         choice = choices[index]

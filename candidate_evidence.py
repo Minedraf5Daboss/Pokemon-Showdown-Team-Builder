@@ -21,7 +21,7 @@ def species_record(value, name):
     return next((found for child in children if (found := species_record(child, name)) is not None), None)
 
 
-def verify_sets(root):
+def verify_sets(root, source_root=None):
     recommendations = json.loads((root / "set_recommendations.json").read_text(encoding="utf-8"))
     require(recommendations["schema_version"] == 2 and recommendations["format"] == "gen9doublesubers", "Wrong catalog schema/format")
     for filename in ("sets_manifest.json", "candidate_sources.json"):
@@ -43,7 +43,7 @@ def verify_sets(root):
     species = recommendations["species"]
     require(qualifying == {name for name, entry in species.items() if entry["selection"] == "above_threshold"},
             "Catalog does not exactly cover the requested inclusive usage union")
-    source_root = root.parent.parent
+    source_root = source_root or root.parent.parent
     for source in recommendations["sample_sources"]:
         require(source["format"] == recommendations["format"] and source["quality"] in {"sample", "sample_variant"}, "Wrong sample scope")
         require(hashlib.sha256((source_root / source["path"]).read_bytes()).hexdigest() == source["sha256"], "Sample hash mismatch")

@@ -4,11 +4,9 @@ from collections import defaultdict
 import hashlib
 from itertools import product
 import json
-from pathlib import Path
-import subprocess
 
 from team_styles import archetype_set_roles, set_features, speed_mode
-from usage_variants import compatible_moves, parse_spread, pooled_components, ranked
+from usage_variants import compatible_moves, parse_spread, pooled_components, ranked, validate_options
 
 
 MIN_COMPONENT_SHARE = .05
@@ -218,12 +216,9 @@ def fill_roles(evaluations, species, reports, months, urls, to_id, roles_for, no
     if not evaluations:
         return
     # Send only battle data to the pinned validator. Keep evidence in Python.
-    validated = subprocess.run(
-        ["node", str(Path(__file__).with_name("validate_set_options.cjs")), "--all"],
-        input=json.dumps([[{"set": o["set"]} for o in options] for _, _, options in evaluations.values()],
-                         separators=(",", ":")), encoding="utf-8", stdout=subprocess.PIPE, check=True,
-    )
-    for (name, (pools, coverage, options)), legal in zip(evaluations.items(), json.loads(validated.stdout), strict=True):
+    validated = validate_options([[{"set": option["set"]} for option in options]
+                                  for _, _, options in evaluations.values()], all_legal=True)
+    for (name, (pools, coverage, options)), legal in zip(evaluations.items(), validated, strict=True):
         available = [options[index] for index in legal]
         builds = species[name]["sets"]
 

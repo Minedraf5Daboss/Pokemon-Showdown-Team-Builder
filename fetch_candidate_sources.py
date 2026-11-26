@@ -21,9 +21,9 @@ CUTOFFS = (1500, 1630)
 MIN_USAGE = 0.0001  # 0.01%, expressed as a fraction.
 
 
-def fetch(source):
+def fetch(source, root=ROOT):
     url, relative = source
-    path = ROOT / relative
+    path = root / relative
     path.parent.mkdir(parents=True, exist_ok=True)
     error = None
     for attempt in range(3):
@@ -33,8 +33,9 @@ def fetch(source):
                 content = response.read()
             if relative.endswith(".json"):
                 json.loads(content)
-            elif relative.endswith(".txt") and not usage_rows(content.decode()):
-                raise ValueError(f"No usage rows: {url}")
+            elif path.suffix == ".txt" and not path.name.startswith("moveset-"):
+                if not usage_rows(content.decode()):
+                    raise ValueError(f"No usage rows: {url}")
             elif relative.endswith(".html") and b"dexSettings = " not in content:
                 raise ValueError(f"Not a Smogon dex page: {url}")
             path.write_bytes(content)

@@ -20,7 +20,7 @@ The optional language model interprets what the player wants. Python validates t
 
 ## Run locally
 
-The current local catalog contains **7,704 movesets across 535 species and forms**, with variants for roles such as fast attackers, Trick Room setters, and minimum-Speed support. The CLI, API, and test suite use the local candidate pool and supporting data. A fresh clone requires the two data directories listed below to run builds. You can browse the supported strategies in the [archetype catalog](data/team_archetypes.json).
+The original local catalog contains **7,704 movesets across 535 species and forms**, with variants for roles such as fast attackers, Trick Room setters, and minimum-Speed support. The CLI, API, and test suite use the local candidate pool and supporting data. A fresh clone requires the two data directories listed below to run builds. You can browse the supported strategies in the [archetype catalog](data/team_archetypes.json).
 
 With Python 3.10 or later and the existing data at `data/smogon/` and `data/team_corpus/`, install the dependencies and run:
 
@@ -97,4 +97,34 @@ Use `LLM_PROVIDER=compatible` for LM Studio or another server that implements th
 
 This is an independent fan project. The local data pipeline uses [Smogon usage statistics](https://www.smogon.com/stats/) and references [Pokémon Showdown's validator](https://github.com/smogon/pokemon-showdown) for legality checks.
 
-After regenerating set recommendations, run `python refresh_pool.py --sets-only` to update the local movesets when species coverage and usage evidence stay the same.
+### Refresh the candidate pool each month
+
+Run these PowerShell commands from the repository folder. The refresh uses the existing local data in `data/smogon/` and `data/team_corpus/`, plus Node.js. If you haven't installed the pinned Pokémon Showdown validator in this checkout, run this once:
+
+```powershell
+.\.venv\Scripts\python.exe fetch_validator.py
+```
+
+**1. Stage the refresh.** Replace the example URL with the newest published [Smogon monthly stats page](https://www.smogon.com/stats/) or a Gen 9 Doubles Ubers report URL from that month.
+
+```powershell
+.\.venv\Scripts\python.exe stage_pool.py stage https://www.smogon.com/stats/2026-10/
+```
+
+The newest month in the URLs determines the three-month window. The command verifies and reuses cached reports, downloads missing reports for cutoffs 0, 1500, and 1630, and validates the rebuilt catalog in Showdown. Add `--cached-only` to require all reports to be available locally.
+
+When the checks pass, the command prints the snapshot ID and its folder under `data/smogon/staged/`. Open `candidate_catalog.md` to review species and recommended sets, `candidate_sets.txt` for Showdown imports, or `skipped_blueprints.json` to see which reviewed builds dropped out. If a pinned set dropped out, choose an available set ID from the new catalog.
+
+**2. Activate the snapshot.** Replace `SNAPSHOT_ID` with the ID printed in step 1.
+
+```powershell
+.\.venv\Scripts\python.exe stage_pool.py activate "SNAPSHOT_ID"
+```
+
+Restart any running builder or local API server to load the selected catalog. To roll back, activate an earlier snapshot ID or return to the original catalog:
+
+```powershell
+.\.venv\Scripts\python.exe stage_pool.py activate original
+```
+
+For the original catalog's offline workflow, `python refresh_pool.py --sets-only` updates movesets from local recommendations when species coverage and usage evidence stay the same.

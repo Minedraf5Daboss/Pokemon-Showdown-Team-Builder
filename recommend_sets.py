@@ -4,22 +4,20 @@ No automatic claim of optimality: component marginals do not measure complete
 sets, IVs, win rates or EV benchmarks. Run after fetch_candidate_sources.py.
 """
 
-from collections import Counter
 import csv
 import hashlib
 import json
 from pathlib import Path
 import re
 
-from archetype_variants import add_archetype_variants
+from archetype_variants import add_archetype_variants, showdown_data
 from fetch_candidate_sources import MONTHS, CUTOFFS, MIN_USAGE
-from usage_variants import generate_variants
+from usage_variants import generate_variants, parse_spread, pooled_components, validate_options
 from verify_teammates import usage_rows
 
 ROOT = Path(__file__).parent
 DATA = ROOT / "data" / "smogon"
 STATS = ("hp", "atk", "def", "spa", "spd", "spe")
-SECTIONS = ("Abilities", "Items", "Moves", "Spreads", "Tera Types")
 
 
 def write_json(path, value):
@@ -53,8 +51,8 @@ def infer_ivs(name, moves, nature, evs, move_categories, speed_iv=None):
     return ivs
 
 
-def dex_page(name):
-    path = DATA / "sets" / f"{name.lower()}-dex.html"
+def dex_page(name, data=DATA):
+    path = data / "sets" / f"{name.lower()}-dex.html"
     if not path.exists():
         return {"strategies": []}
     html = path.read_text(encoding="utf-8")
@@ -133,76 +131,93 @@ def notes_for(name, moves, item, ability, scenarios):
     return notes
 
 
-def main():
+def recommend(data, months):
     tables, reports = {}, {}
     names = set()
-    for month in MONTHS:
+    for month in months:
         for cutoff in CUTOFFS:
             key = f"{month}/{cutoff}"
-            tables[key] = usage_rows((DATA / month / f"gen9doublesubers-{cutoff}.txt").read_text())
-            reports[month, cutoff] = json.loads((DATA / month / f"gen9doublesubers-{cutoff}.json").read_text())["data"]
+            tables[key] = usage_rows((data / month / f"gen9doublesubers-{cutoff}.txt").read_text(encoding="utf-8"))
+            reports[month, cutoff] = json.loads((data / month / f"gen9doublesubers-{cutoff}.json").read_text(encoding="utf-8"))["data"]
             names.update(name for name, row in tables[key].items() if row["usage"] >= MIN_USAGE)
-    dex = json.loads((DATA / "battle_dex.json").read_text(encoding="utf-8"))
-    manifest = json.loads((DATA / "candidate_sources.json").read_text())
+    dex = json.loads((data / "battle_dex.json").read_text(encoding="utf-8"))
+    manifest = json.loads((data / "candidate_sources.json").read_text(encoding="utf-8"))
     urls = {source["path"]: source["url"] for source in manifest}
-    legacy = json.loads((DATA / "legacy_sets.json").read_text())
-    previous = json.loads((DATA / "previous_recommendations.json").read_text())
+    legacy = json.loads((data / "legacy_sets.json").read_text(encoding="utf-8"))
+    previous = json.loads((data / "previous_recommendations.json").read_text(encoding="utf-8"))
     species = {}
     for name in sorted(names | legacy.keys()):
         observations = [{"month": month, "cutoff": cutoff,
                          "usage": tables[f"{month}/{cutoff}"].get(name, {}).get("usage", 0),
                          "url": urls[f"{month}/gen9doublesubers-{cutoff}.txt"]}
-                        for month in MONTHS for cutoff in CUTOFFS]
+                        for month in months for cutoff in CUTOFFS]
         species[name] = {"base_species": dex["species"][name]["baseSpecies"],
                          "selection": "above_threshold" if name in names else "existing_production_below_threshold",
                          "usage_reports": observations, "sets": []}
-    blueprints = list(csv.DictReader((DATA / "set_blueprints.tsv").open(encoding="utf-8"), delimiter="\t"))
+    with (data / "set_blueprints.tsv").open(encoding="utf-8", newline="") as source:
+        blueprints = list(csv.DictReader(source, delimiter="\t"))
+    skipped, reviewed = [], []
     for row in blueprints:
         name = row["species"]
-        pooled = {section: Counter() for section in SECTIONS}
+        blueprint = {"species": name, "label": row["label"]}
+        if name not in species:
+            skipped.append({**blueprint, "reason": "Species is outside the refreshed pool"})
+            continue
         # Cutoffs are nested views of the same battles: select one cutoff for
         # set evidence rather than summing both as independent observations.
-        for month in MONTHS:
-            entry = reports[month, 1630].get(name, {})
-            for section in SECTIONS:
-                pooled[section].update(entry.get(section, {}))
+        pooled = pooled_components(reports, months, 1630, name)
         spreads = pooled["Spreads"].most_common()
-        spread = spreads[int(row["spread"])][0] if row["spread"].isdigit() else row["spread"]
-        nature, values = spread.split(":")
-        evs = dict(zip(STATS, map(int, values.split("/"))))
+        spread = row["spread"]
+        if spread.isdigit():
+            index = int(spread)
+            spread = spreads[index][0] if index < len(spreads) else ""
+        if pooled["Spreads"][spread] <= 0:
+            skipped.append({**blueprint, "reason": "Requested spread is absent from current 1630 reports"})
+            continue
+        nature, evs = parse_spread(spread)
         moves, ability, item = row["moves"].split(","), row["ability"], row["item"]
         scenarios = row["scenario"].split(",")
         # Usage does not contain IVs. Role inferences and benchmark overrides
         # remain separate from the observed nature/EV spread.
         ivs = infer_ivs(name, moves, nature, evs, dex["move_categories"], row.get("speed_iv"))
-        tera = row.get("tera") or dex["types"][pooled["Tera Types"].most_common(1)[0][0]]
+        tera_types = pooled["Tera Types"].most_common(1)
+        tera = row.get("tera") or (dex["types"][tera_types[0][0]] if tera_types else "")
         # Crowned signature moves are named differently in raw usage reports.
         move_ids = ["ironhead" if move == "Behemoth Blade" else to_id(move) for move in moves]
         component_weights = {"Abilities": {ability: pooled["Abilities"][to_id(ability)]},
-                             "Items": {item: pooled["Items"][to_id(item)]},
+                             "Items": {item: pooled["Items"][to_id(item) or "nothing"]},
                              "Tera Types": {tera: pooled["Tera Types"][to_id(tera)]},
                              "Moves": {move: pooled["Moves"][key] for move, key in zip(moves, move_ids)}}
         if any(weight <= 0 for components in component_weights.values() for weight in components.values()):
-            raise ValueError(f"Unsupported blueprint component: {name}/{row['label']}")
+            skipped.append({**blueprint, "reason": "A component is absent from current 1630 reports"})
+            continue
         selected = {"set_id": to_id(name) + ":" + re.sub(r"[^a-z0-9]+", "-", row["label"].lower()).strip("-"),
                     "label": row["label"], "scenario_tags": scenarios,
                     "ability": ability, "tera_Type": tera, "held_Item": item, "moves": moves,
                     "nature": nature, "evs": evs, "ivs": ivs, "level": 100,
                     "role_tags": roles_for(moves, evs, ability), "evidence_status": "dubers_usage_informed",
                     "team_notes": notes_for(name, moves, item, ability, scenarios),
-                    "source_urls": [urls[f"{month}/gen9doublesubers-1630.json"] for month in MONTHS]
+                    "source_urls": [urls[f"{month}/gen9doublesubers-1630.json"] for month in months]
                                    + [urls[f"sets/{name.lower()}-dex.html"]],
                     "evidence": {"cutoff": 1630, "weighted_appearances": sum(pooled["Abilities"].values()),
                                  "selected_components": component_weights, "selected_spread": spread,
                                  "selected_spread_weight": pooled["Spreads"][spread],
-                                 "curated_dubers_analysis_available": any(s["format"] == "Doubles Ubers" for s in dex_page(name)["strategies"])},
+                                 "curated_dubers_analysis_available": any(s["format"] == "Doubles Ubers" for s in dex_page(name, data)["strategies"])},
                     "iv_basis": "Inferred for the role; usage statistics do not record IVs. Miraidon/Koraidon retain legal encounter IVs.",
                     "optimality": "Scenario-specific recommendation using observed components and an observed exact nature/EV spread. Marginal usage is not full-set co-occurrence, a win rate or proof of optimality."}
-        species[name]["sets"].append(selected)
         if row.get("speed_iv") not in (None, ""):
             selected["iv_basis"] += f" Explicit Speed IV override: {ivs['spe']}; minimum Speed is not assumed for this support set."
         if name in {"Raging Bolt", "Terapagos"}:
             selected["iv_basis"] = f"Attack IV {ivs['atk']} matches the official Showdown SV encounter requirement; other IVs are inferred for the role."
+        reviewed.append((blueprint, selected))
+    if reviewed:
+        checks = validate_options([[{"set": showdown_data(blueprint["species"], selected)}]
+                                   for blueprint, selected in reviewed], allow_normalization=True)
+        for (blueprint, selected), index in zip(reviewed, checks, strict=True):
+            if index < 0:
+                skipped.append({**blueprint, "reason": "The refreshed build failed Showdown legality checks"})
+            else:
+                species[blueprint["species"]]["sets"].append(selected)
     for name, old in legacy.items():
         selected = {key: old[key] for key in ("ability", "tera_Type", "held_Item", "moves", "nature", "evs", "ivs", "role_tags", "team_notes", "iv_basis", "optimality")}
         selected.update(set_id=to_id(name) + ":legacy", label="Existing production baseline", level=100,
@@ -246,13 +261,14 @@ def main():
             signature = lambda s: json.dumps([s[k] for k in ("ability", "tera_Type", "held_Item", "moves", "nature", "evs", "ivs")], sort_keys=True)
             if all(signature(s) != signature(selected) for s in species[name]["sets"]):
                 species[name]["sets"].append(selected)
-    generate_variants(species, dex, reports, MONTHS, urls, infer_ivs, to_id, roles_for, notes_for)
-    archetype_coverage = add_archetype_variants(species, dex, reports, MONTHS, urls,
+    generate_variants(species, dex, reports, months, urls, infer_ivs, to_id, roles_for, notes_for)
+    archetype_coverage = add_archetype_variants(species, dex, reports, months, urls,
                                               infer_ivs, to_id, roles_for, notes_for)
-    document = {"schema_version": 2, "format": "gen9doublesubers", "months": list(MONTHS),
+    document = {"schema_version": 2, "format": "gen9doublesubers", "months": list(months),
                 "selection_cutoffs": list(CUTOFFS), "threshold": MIN_USAGE, "selection_rule": "usage >= threshold in ANY requested report",
                 "archetype_coverage": archetype_coverage, "species": species, "sample_sources": sample_sources}
-    write_json(DATA / "set_recommendations.json", document)
+    write_json(data / "set_recommendations.json", document)
+    write_json(data / "skipped_blueprints.json", skipped)
     changes = {}
     for name, old in previous.items():
         if name not in species:
@@ -263,21 +279,31 @@ def main():
                          "previous": {key: old[key] for key in changed},
                          "recommended": {key: selected[key] for key in changed},
                          "recommended_set_id": selected["set_id"],
-                         "reason": "Existing below-threshold production baseline retained." if name in legacy else
-                                   "Current 1630 usage-informed scenario baseline; additional variants retained where supported."}
-    write_json(DATA / "set_changes.json", changes)
+                         "reason": {"experimental": "Existing production baseline retained.",
+                                    "dubers_usage_informed": "Current 1630 usage-informed scenario baseline.",
+                                    "published_smogon_dubers_sample": "Published Doubles Ubers sample set.",
+                                    "dubers_usage_derived": "Legal variant assembled from current usage data."}[
+                                        selected["evidence_status"]]}
+    write_json(data / "set_changes.json", changes)
     lines = ["# SV Doubles Ubers candidate review", "",
-             "Peak usage is the maximum weighted usage across the six requested reports. Sets are separate scenario choices; their usage is not measured.", "",
+             f"Evidence months: {', '.join(months)}.", "",
+             "Peak usage is the maximum weighted usage across the requested reports. Sets are separate scenario choices; their usage is not measured.", "",
              "| Species | Peak usage | Sets | First recommendation | Scenarios |", "| --- | ---: | ---: | --- | --- |"]
     for name, entry in species.items():
         selected = entry["sets"][0]
         peak = max(row["usage"] for row in entry["usage_reports"])
         scenarios = sorted({tag for build in entry["sets"] for tag in build["scenario_tags"]})
         lines.append(f"| {name} | {peak:.5%} | {len(entry['sets'])} | {selected['label']}: {selected['held_Item'] or 'No item'} | {', '.join(scenarios)} |")
-    (DATA / "candidate_catalog.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (data / "candidate_catalog.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"Reviewed {len(names)} qualifying species; {len(species)} total species; {sum(len(s['sets']) for s in species.values())} scenario sets.")
     print(json.dumps({key: value for key, value in archetype_coverage.items() if key != "single_set_roles"},
                      sort_keys=True))
+    if skipped:
+        print(f"Skipped {len(skipped)} unsupported blueprints. See skipped_blueprints.json.")
+
+
+def main():
+    recommend(DATA, MONTHS)
 
 
 if __name__ == "__main__":

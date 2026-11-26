@@ -4,8 +4,8 @@ The text output contains a separate one-Pokemon template for each candidate.
 """
 
 import json
-from pathlib import Path
 
+from catalog_paths import active_catalog_dir
 from models import FORMAT_ID, PokemonSet, teampool
 from team_output import format_showdown_set
 
@@ -21,20 +21,23 @@ def showdown_set(pokemon: PokemonSet) -> dict:
             "ivs": {stat.removesuffix("_IV"): value for stat, value in vars(pokemon.ivs).items()}}
 
 
-def pool_document():
+def pool_document(pool=teampool):
     return {"format": FORMAT_ID,
-            "set_ids": [pokemon.set_id for candidate in teampool for pokemon in candidate.pokemon_sets],
-            "sets": [showdown_set(pokemon) for candidate in teampool for pokemon in candidate.pokemon_sets]}
+            "set_ids": [pokemon.set_id for candidate in pool for pokemon in candidate.pokemon_sets],
+            "sets": [showdown_set(pokemon) for candidate in pool for pokemon in candidate.pokemon_sets]}
 
 
 def importable(pokemon: PokemonSet) -> str:
     return format_showdown_set(pokemon)
 
 
-if __name__ == "__main__":
-    root = Path(__file__).parent / "data" / "smogon"
-    (root / "candidate_sets.json").write_text(json.dumps(pool_document(), indent=2) + "\n")
+def export_pool(root, pool):
+    (root / "candidate_sets.json").write_text(json.dumps(pool_document(pool), indent=2) + "\n", encoding="utf-8")
     teams = [f"=== [{FORMAT_ID}] {pokemon.name} - {pokemon.label} ({pokemon.set_id}) ===\n\n{importable(pokemon)}"
-             for candidate in teampool for pokemon in candidate.pokemon_sets]
+             for candidate in pool for pokemon in candidate.pokemon_sets]
     (root / "candidate_sets.txt").write_text("\n\n".join(teams) + "\n", encoding="utf-8")
     print(f"Exported {len(teams)} independent candidate sets.")
+
+
+if __name__ == "__main__":
+    export_pool(active_catalog_dir(), teampool)
