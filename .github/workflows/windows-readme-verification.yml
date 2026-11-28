@@ -1,0 +1,83 @@
+name: Windows README verification
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  connection:
+    if: github.head_ref == 'codex/windows-readme-verification'
+    name: Fresh Windows run ${{ matrix.run }}
+    runs-on: windows-2025
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        run: [1, 2]
+    steps:
+      - name: Download the project from GitHub
+        shell: pwsh
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          $checkout = Join-Path $env:RUNNER_TEMP 'Pokemon Showdown Team Builder'
+          git clone --branch main --single-branch https://github.com/Minedraf5Daboss/Pokemon-Showdown-Team-Builder.git $checkout
+          Set-Location -LiteralPath $checkout -ErrorAction Stop
+          git checkout --detach a3901ec0b2e8cfd9c75d37ce533d1824f3bff61b
+          git rev-parse HEAD
+
+      - name: Install and start Ollama, then run the README connection check
+        shell: pwsh
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          $installer = Join-Path $env:RUNNER_TEMP 'OllamaSetup.exe'
+          Write-Host 'Downloading the official Ollama Windows installer.'
+          curl.exe --fail --location --silent --show-error --max-time 420 --output $installer 'https://ollama.com/download/OllamaSetup.exe'
+          Write-Host 'Verifying the Ollama installer signature.'
+          $signature = Get-AuthenticodeSignature -FilePath $installer
+          if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Subject -notmatch '(^|, )O=Ollama Inc\.(,|$)') {
+            throw 'Ollama installer signature verification failed.'
+          }
+          Write-Host 'Installing Ollama.'
+          $setup = Start-Process -FilePath $installer -ArgumentList '/VERYSILENT','/NORESTART','/SUPPRESSMSGBOXES' -PassThru -WindowStyle Hidden
+          if (-not $setup.WaitForExit(300000)) { throw 'Ollama installer did not exit within five minutes.' }
+          if ($setup.ExitCode -ne 0) { throw "Ollama installer exited with code $($setup.ExitCode)." }
+          $ollamaDirectory = Join-Path $env:LOCALAPPDATA 'Programs\Ollama'
+          $env:PATH = "$ollamaDirectory;$env:PATH"
+          $env:OLLAMA_HOST = '127.0.0.1:11434'
+          $env:NO_PROXY = (@($env:NO_PROXY, 'localhost', '127.0.0.1') | Where-Object { $_ }) -join ','
+          $serverOutput = Join-Path $env:RUNNER_TEMP 'ollama-server.stdout.log'
+          $serverError = Join-Path $env:RUNNER_TEMP 'ollama-server.stderr.log'
+          Write-Host 'Starting Ollama on the local loopback interface.'
+          Start-Process -FilePath (Join-Path $ollamaDirectory 'ollama.exe') -ArgumentList 'serve' -WindowStyle Hidden -RedirectStandardOutput $serverOutput -RedirectStandardError $serverError
+          $ready = $false
+          for ($attempt = 0; $attempt -lt 30; $attempt++) {
+            try {
+              curl.exe --noproxy 127.0.0.1 --max-time 2 --fail --silent 'http://127.0.0.1:11434/api/version'
+              $ready = $true
+              break
+            } catch {
+              Start-Sleep -Seconds 2
+            }
+          }
+          if (-not $ready) {
+            Get-Content -LiteralPath $serverOutput, $serverError -Tail 30 -ErrorAction SilentlyContinue
+            Get-Content -LiteralPath (Join-Path $env:LOCALAPPDATA 'Ollama\server.log') -Tail 30 -ErrorAction SilentlyContinue
+            throw 'Ollama did not answer on 127.0.0.1:11434.'
+          }
+
+          ollama pull llama3.1:8b
+          $models = ollama list
+          $models | Write-Output
+          if (-not ($models -match '^llama3\.1:8b\s')) { throw 'The README model is missing.' }
+
+          Set-Location -LiteralPath (Join-Path $env:RUNNER_TEMP 'Pokemon Showdown Team Builder') -ErrorAction Stop
+          python --version
+          python -m venv .venv
+          .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+          $response = .\.venv\Scripts\python.exe llm.py
+          $response | Write-Output
+          if (($response -join ' ') -notmatch 'hello[,\s]+world') { throw 'The connection check did not return its expected greeting.' }
