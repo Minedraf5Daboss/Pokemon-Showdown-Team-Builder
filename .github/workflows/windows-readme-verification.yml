@@ -3,6 +3,7 @@ name: Windows README verification
 on:
   push:
     branches: [codex/windows-readme-verification]
+    paths: [.github/workflows/windows-readme-verification.yml]
 
 permissions:
   contents: read
