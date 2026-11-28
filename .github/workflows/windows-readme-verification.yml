@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   connection:
+    if: github.head_ref == 'codex/windows-readme-verification'
     name: Fresh Windows run ${{ matrix.run }}
     runs-on: windows-2025
     timeout-minutes: 25
@@ -18,7 +19,7 @@ jobs:
       matrix:
         run: [1, 2]
     steps:
-      - name: Clone from GitHub and run the README Ollama check
+      - name: Download the project from GitHub
         shell: pwsh
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
@@ -28,13 +29,21 @@ jobs:
           git checkout --detach a3901ec0b2e8cfd9c75d37ce533d1824f3bff61b
           git rev-parse HEAD
 
+      - name: Install and start Ollama, then run the README connection check
+        shell: pwsh
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
           $installer = Join-Path $env:RUNNER_TEMP 'OllamaSetup.exe'
-          Invoke-WebRequest -Uri 'https://ollama.com/download/OllamaSetup.exe' -OutFile $installer
+          Write-Host 'Downloading the official Ollama Windows installer.'
+          curl.exe --fail --location --silent --show-error --max-time 420 --output $installer 'https://ollama.com/download/OllamaSetup.exe'
+          Write-Host 'Verifying the Ollama installer signature.'
           $signature = Get-AuthenticodeSignature -FilePath $installer
           if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Subject -notmatch '(^|, )O=Ollama Inc\.(,|$)') {
             throw 'Ollama installer signature verification failed.'
           }
-          $setup = Start-Process -FilePath $installer -ArgumentList '/VERYSILENT','/NORESTART','/SUPPRESSMSGBOXES' -Wait -PassThru -WindowStyle Hidden
+          Write-Host 'Installing Ollama.'
+          $setup = Start-Process -FilePath $installer -ArgumentList '/VERYSILENT','/NORESTART','/SUPPRESSMSGBOXES' -PassThru -WindowStyle Hidden
+          if (-not $setup.WaitForExit(300000)) { throw 'Ollama installer did not exit within five minutes.' }
           if ($setup.ExitCode -ne 0) { throw "Ollama installer exited with code $($setup.ExitCode)." }
           $ollamaDirectory = Join-Path $env:LOCALAPPDATA 'Programs\Ollama'
           $env:PATH = "$ollamaDirectory;$env:PATH"
@@ -53,11 +62,13 @@ jobs:
             }
           }
           if (-not $ready) { throw 'Ollama did not start on port 11434.' }
+
           ollama pull llama3.1:8b
           $models = ollama list
           $models | Write-Output
           if (-not ($models -match '^llama3\.1:8b\s')) { throw 'The README model is missing.' }
 
+          Set-Location -LiteralPath (Join-Path $env:RUNNER_TEMP 'Pokemon Showdown Team Builder') -ErrorAction Stop
           python --version
           python -m venv .venv
           .\.venv\Scripts\python.exe -m pip install -r requirements.txt
