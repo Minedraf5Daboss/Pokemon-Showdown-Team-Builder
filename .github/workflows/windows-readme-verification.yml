@@ -47,21 +47,27 @@ jobs:
           if ($setup.ExitCode -ne 0) { throw "Ollama installer exited with code $($setup.ExitCode)." }
           $ollamaDirectory = Join-Path $env:LOCALAPPDATA 'Programs\Ollama'
           $env:PATH = "$ollamaDirectory;$env:PATH"
-          ollama --version
+          $env:OLLAMA_HOST = '127.0.0.1:11434'
+          $env:NO_PROXY = (@($env:NO_PROXY, 'localhost', '127.0.0.1') | Where-Object { $_ }) -join ','
+          $serverOutput = Join-Path $env:RUNNER_TEMP 'ollama-server.stdout.log'
+          $serverError = Join-Path $env:RUNNER_TEMP 'ollama-server.stderr.log'
+          Write-Host 'Starting Ollama on the local loopback interface.'
+          Start-Process -FilePath (Join-Path $ollamaDirectory 'ollama.exe') -ArgumentList 'serve' -WindowStyle Hidden -RedirectStandardOutput $serverOutput -RedirectStandardError $serverError
           $ready = $false
           for ($attempt = 0; $attempt -lt 30; $attempt++) {
             try {
-              $null = Invoke-RestMethod -Uri 'http://localhost:11434/api/version' -TimeoutSec 2
+              curl.exe --noproxy 127.0.0.1 --max-time 2 --fail --silent 'http://127.0.0.1:11434/api/version'
               $ready = $true
               break
             } catch {
-              if ($attempt -eq 0) {
-                Start-Process -FilePath (Join-Path $ollamaDirectory 'ollama.exe') -ArgumentList 'serve' -WindowStyle Hidden
-              }
               Start-Sleep -Seconds 2
             }
           }
-          if (-not $ready) { throw 'Ollama did not start on port 11434.' }
+          if (-not $ready) {
+            Get-Content -LiteralPath $serverOutput, $serverError -Tail 30 -ErrorAction SilentlyContinue
+            Get-Content -LiteralPath (Join-Path $env:LOCALAPPDATA 'Ollama\server.log') -Tail 30 -ErrorAction SilentlyContinue
+            throw 'Ollama did not answer on 127.0.0.1:11434.'
+          }
 
           ollama pull llama3.1:8b
           $models = ollama list
